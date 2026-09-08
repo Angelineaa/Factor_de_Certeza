@@ -62,7 +62,8 @@ function combinarCF(cf1, cf2) {
     // Combina dos evidencias que apoyan o contradicen la misma hipótesis.
     // La fórmula cambia según el signo de cada factor recibido.
 
-    // Ambos positivos
+    // Ambos aportes son positivos o cero. Un cero representa una regla no activa
+    // y funciona como aporte neutro para no alterar el otro factor.
     if (cf1 >= 0 && cf2 >= 0) {
 
         // Suma el apoyo de ambas evidencias sin superar el valor máximo 1.
@@ -120,8 +121,7 @@ function limitar(valor) {
 
 function estadoRegla(antecedente) {
 
-    // Clasifica el antecedente para explicarle al usuario cómo se comporta
-    // la regla: positivo apoya, negativo contradice y cero no aporta evidencia.
+    // Una regla positiva solo puede activarse cuando su antecedente es estrictamente mayor que cero.
     if (antecedente > 0) {
 
         return "ACTIVA: el antecedente aporta evidencia a favor.";
@@ -130,7 +130,7 @@ function estadoRegla(antecedente) {
 
     if (antecedente < 0) {
 
-        return "ACTIVA CON EVIDENCIA NEGATIVA: el antecedente contradice la hipótesis.";
+        return "NO ACTIVA: el antecedente es negativo y no aporta evidencia positiva.";
 
     }
 
@@ -168,8 +168,9 @@ function motorFactoresCerteza(evidencias) {
        Factor de regla = 0.80
     ====================================================== */
 
-    // Propaga E1 hacia CH1: el valor de E1 se multiplica por el peso 0.80.
-    const R1 = propagar(E1, 0.80);
+    // R1 solo se activa cuando E1 aporta evidencia positiva.
+    const activaR1 = E1 > 0;
+    const R1 = activaR1 ? propagar(E1, 0.80) : 0;
 
 
     /* =====================================================
@@ -179,14 +180,12 @@ function motorFactoresCerteza(evidencias) {
        Factor de regla = 0.75
     ====================================================== */
 
-    // Para un AND se toma la evidencia más débil entre E2 y E4.
+    // AND requiere que todas sus evidencias sean estrictamente positivas.
+    const activaR2 = E2 > 0 && E4 > 0;
     const antecedenteR2 = AND(E2, E4);
 
-    // Propaga el antecedente combinado hacia CH2 con el peso de R2.
-    const R2 = propagar(
-        antecedenteR2,
-        0.75
-    );
+    // Solo se propaga el mínimo cuando ambas condiciones del AND están activas.
+    const R2 = activaR2 ? propagar(antecedenteR2, 0.75) : 0;
 
 
     /* =====================================================
@@ -196,11 +195,10 @@ function motorFactoresCerteza(evidencias) {
        Factor de regla = 0.60
     ====================================================== */
 
-    // Propaga E3 hacia CH2. Si E3 es negativo, R3 también será negativo.
-    const R3 = propagar(
-        E3,
-        0.60
-    );
+    // E3 negativo representa evidencia en contra, pero no activa esta regla positiva.
+    // Por eso se conserva E3 para explicarlo, pero R3 recibe cero cuando E3 <= 0.
+    const activaR3 = E3 > 0;
+    const R3 = activaR3 ? propagar(E3, 0.60) : 0;
 
 
     /* =====================================================
@@ -221,11 +219,10 @@ function motorFactoresCerteza(evidencias) {
         notE3
     );
 
-    // Propaga el antecedente de R4 hacia la hipótesis de falsa alarma.
-    const R4 = propagar(
-        antecedenteR4,
-        0.50
-    );
+    // El criterio se revisa después de aplicar NOT: al menos uno debe ser > 0.
+    // Si ambos valores son cero o negativos, R4 no se activa y aporta cero.
+    const activaR4 = antecedenteR4 > 0;
+    const R4 = activaR4 ? propagar(antecedenteR4, 0.50) : 0;
 
 
     /* =====================================================
@@ -237,6 +234,7 @@ function motorFactoresCerteza(evidencias) {
     ====================================================== */
 
     // Acumula los aportes de R2 y R3 sobre la hipótesis CH2.
+    // Las reglas no activas llegan como cero y no se interpretan como evidencia negativa.
     const CH2 = limitar(combinarCF(
         R2,
         R3
@@ -309,12 +307,17 @@ function motorFactoresCerteza(evidencias) {
 
         operaciones: {
 
+            // Se devuelven los valores intermedios para explicar las fórmulas en la interfaz.
             antecedenteR2,
             notE1,
             notE3,
             antecedenteR4,
             antecedenteR1: E1,
-            antecedenteR3: E3
+            antecedenteR3: E3,
+            activaR1,
+            activaR2,
+            activaR3,
+            activaR4
 
         },
 
@@ -419,13 +422,13 @@ function actualizarReglas(resultado) {
         `${estadoRegla(OP.antecedenteR1)} ${formato(OP.antecedenteR1)} × 0.80 = ${formato(resultado.reglas.R1)} para DDoS.`;
 
     document.getElementById("r2Explanation").textContent =
-        `${estadoRegla(OP.antecedenteR2)} min(E2,E4) = ${formato(OP.antecedenteR2)}; ${formato(OP.antecedenteR2)} × 0.75 = ${formato(resultado.reglas.R2)} para Ransomware.`;
+        `${OP.activaR2 ? "ACTIVA: E2 y E4 son estrictamente positivas." : "NO ACTIVA: AND requiere que E2 y E4 sean estrictamente positivas."} min(E2,E4) = ${formato(OP.antecedenteR2)}; resultado R2 = ${formato(resultado.reglas.R2)} para Ransomware.`;
 
     document.getElementById("r3Explanation").textContent =
-        `${estadoRegla(OP.antecedenteR3)} ${formato(OP.antecedenteR3)} × 0.60 = ${formato(resultado.reglas.R3)} para Ransomware.`;
+        `${OP.activaR3 ? "ACTIVA: E3 es positiva." : `NO ACTIVA: E3 = ${formato(OP.antecedenteR3)} no aporta evidencia positiva.`} ${OP.activaR3 ? `${formato(OP.antecedenteR3)} × 0.60 = ${formato(resultado.reglas.R3)}` : "resultado R3 = 0"} para Ransomware.`;
 
     document.getElementById("r4Explanation").textContent =
-        `${estadoRegla(OP.antecedenteR4)} max(NOT E1,NOT E3) = ${formato(OP.antecedenteR4)}; × 0.50 = ${formato(resultado.reglas.R4)} para Falsa Alarma.`;
+        `${OP.activaR4 ? "ACTIVA: al menos una condición después de NOT es positiva." : "NO ACTIVA: ninguna condición después de NOT es positiva."} max(NOT E1,NOT E3) = ${formato(OP.antecedenteR4)}; resultado R4 = ${formato(resultado.reglas.R4)} para Falsa Alarma.`;
 
 }
 
@@ -577,7 +580,7 @@ function escribirConsola(resultado) {
 
         [
             "E3:",
-            `${E[2].toFixed(2)} | ${E[2] < 0 ? "Evidencia en contra de amenazas." : "Evidencia a favor de amenazas."}`,
+            `${E[2].toFixed(2)} | ${E[2] < 0 ? "Evidencia en contra de amenazas." : E[2] > 0 ? "Evidencia a favor de amenazas." : "Ausencia de evidencia."}`,
             E[2] < 0 ? "warning" : "success"
         ],
 
@@ -625,20 +628,20 @@ function escribirConsola(resultado) {
 
         [
             "R2 = AND(E2,E4) × 0.75:",
-            `${estadoRegla(OP.antecedenteR2)} ${OP.antecedenteR2.toFixed(3)} × 0.75 = ${R.R2.toFixed(3)} para Ransomware.`,
+            `${OP.activaR2 ? "ACTIVA: ambas evidencias son positivas." : "NO ACTIVA: todas las condiciones del AND deben ser positivas."} min(${E[1].toFixed(2)}, ${E[3].toFixed(2)}) = ${OP.antecedenteR2.toFixed(3)}; R2 = ${R.R2.toFixed(3)} para Ransomware.`,
             "success"
         ],
 
         [
             "R3 = E3 × 0.60:",
-            `${estadoRegla(OP.antecedenteR3)} ${E[2].toFixed(2)} × 0.60 = ${R.R3.toFixed(3)} para Ransomware.`,
-            R.R3 < 0 ? "warning" : "success"
+            `${OP.activaR3 ? "ACTIVA: E3 es positiva." : `NO ACTIVA: E3 = ${E[2].toFixed(2)} es cero o negativa; se toma R3 = 0.`} ${OP.activaR3 ? `${E[2].toFixed(2)} × 0.60 = ${R.R3.toFixed(3)}` : ""} para Ransomware.`,
+            OP.activaR3 ? "success" : "warning"
         ],
 
         [
             "R4 = OR(NOT E1,NOT E3) × 0.50:",
-            `${estadoRegla(OP.antecedenteR4)} max(${OP.notE1.toFixed(3)}, ${OP.notE3.toFixed(3)}) = ${OP.antecedenteR4.toFixed(3)}; R4 = ${R.R4.toFixed(3)} para Falsa Alarma.`,
-            "success"
+            `${OP.activaR4 ? "ACTIVA: al menos una condición después de NOT es positiva." : "NO ACTIVA: las dos condiciones después de NOT son cero o negativas."} max(${OP.notE1.toFixed(3)}, ${OP.notE3.toFixed(3)}) = ${OP.antecedenteR4.toFixed(3)}; R4 = ${R.R4.toFixed(3)} para Falsa Alarma.`,
+            OP.activaR4 ? "success" : "warning"
         ],
 
         [
@@ -655,7 +658,7 @@ function escribirConsola(resultado) {
 
         [
             "EXPLICACION",
-            `${E[2] < 0 ? "E3 aporta evidencia negativa a R3 y NOT(E3) es positiva" : E[2] > 0 ? "E3 aporta evidencia positiva a R3 y NOT(E3) es negativa" : "E3 no aporta evidencia; por eso R3 y NOT(E3) valen 0"}.`,
+            `${E[2] < 0 ? "E3 es evidencia negativa: no activa R3, aunque NOT(E3) puede activar R4" : E[2] > 0 ? "E3 es evidencia positiva: activa R3, mientras NOT(E3) es negativa" : "E3 no aporta evidencia; R3 no se activa y NOT(E3) vale 0"}.`,
             ""
         ],
 

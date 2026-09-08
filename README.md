@@ -89,7 +89,7 @@ Primero se calcula el antecedente mediante `AND`:
 antecedenteR2 = min(E2, E4)
 ```
 
-Después se propaga el resultado:
+Después se propaga el resultado únicamente si ambas evidencias son estrictamente positivas:
 
 ```text
 R2 = min(E2, E4) × 0.75
@@ -104,13 +104,13 @@ SI E3 ENTONCES CH2
 Factor de regla: 0.60
 ```
 
-Cálculo:
+Cálculo, únicamente cuando `E3 > 0`:
 
 ```text
 R3 = E3 × 0.60
 ```
 
-Si E3 es negativo, R3 también representa evidencia negativa para Ransomware.
+Si `E3 <= 0`, la regla no se activa y su resultado es `R3 = 0`. El valor negativo de E3 se conserva como evidencia en contra, pero no se propaga como una regla activa.
 
 ### Regla R4
 
@@ -126,7 +126,7 @@ NOT E1 = -E1
 NOT E3 = -E3
 ```
 
-Después se aplica `OR` y se propaga el resultado:
+Después se aplica `OR`. La regla solo se activa si el resultado de `OR` es positivo:
 
 ```text
 R4 = max(NOT E1, NOT E3) × 0.50
@@ -173,10 +173,9 @@ Una evidencia positiva se convierte en negativa y una negativa se convierte en p
 La página explica el estado de cada regla tanto en la sección de reglas como en la consola.
 
 - **ACTIVA:** el antecedente es positivo y aporta evidencia a favor.
-- **ACTIVA CON EVIDENCIA NEGATIVA:** el antecedente es negativo y contradice la hipótesis.
-- **NO ACTIVA:** el antecedente vale `0`, por lo que no aporta evidencia.
+- **NO ACTIVA:** el antecedente es `0` o negativo, por lo que no aporta evidencia positiva.
 
-Una regla con evidencia negativa se calcula igualmente, porque su resultado debe reflejar esa contradicción mediante un factor negativo.
+Una evidencia negativa se conserva para la explicación y para evaluar `NOT`, pero no activa directamente una regla positiva.
 
 ## 8. Combinación de CH2
 
@@ -201,7 +200,7 @@ CFcomb = (CF1 + CF2) /
          (1 - min(abs(CF1), abs(CF2)))
 ```
 
-El resultado de esta combinación se limita al intervalo `[-1, 1]` antes de mostrarse.
+Las reglas no activas aportan `0` a CH2. Por tanto, solo se combinan los aportes positivos de las reglas activas. El resultado se limita al intervalo `[-1, 1]` antes de mostrarse.
 
 ## 9. Diagnóstico final
 
