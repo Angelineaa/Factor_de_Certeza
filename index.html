@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Configuración básica del documento y metadatos para el navegador. -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Motor de Factores de Certeza</title>
+
+    <!-- Importación de las fuentes utilizadas por la interfaz. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Hoja de estilos principal de la aplicación. -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Formas decorativas que componen el fondo visual de la pantalla. -->
+    <div class="background-shape shape-one"></div>
+    <div class="background-shape shape-two"></div>
+    <div class="background-shape shape-three"></div>
+
+    <main class="container">
+
+        <!-- Encabezado: presenta el nombre y el propósito del sistema experto. -->
+        <header class="hero">
+
+            <div class="hero-badge">
+                SISTEMA EXPERTO · IDS
+            </div>
+
+            <h1>Motor de Factores de Certeza</h1>
+
+            <p>
+                Sistema experto para el análisis y diagnóstico
+                de incidentes de ciberseguridad.
+            </p>
+
+            <div class="hero-line"></div>
+
+        </header>
+
+
+        <!-- Panel de evidencias: permite introducir los factores detectados por el sensor. -->
+        <section class="panel evidence-panel">
+
+            <div class="section-title">
+                <span class="number">01</span>
+
+                <div>
+                    <h2>Vector de evidencias</h2>
+                    <p>
+                        Ingresa los factores de certeza detectados por el sensor.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="evidence-grid">
+
+                <!-- E1: evidencia relacionada con un pico anormal de tráfico de red. -->
+                <div class="evidence-card">
+
+                    <div class="evidence-top">
+                        <span class="evidence-code">E1</span>
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <h3>Pico de ancho de banda</h3>
+
+                    <p>
+                        Incremento anormal del tráfico de red.
+                    </p>
+
+                    <div class="input-wrapper">
+                        <input
+                            type="number"
+                            id="e1"
+                            min="-1"
+                            max="1"
+                            step="0.01"
+                            value="0.85"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- E2: evidencia relacionada con intentos fallidos de acceso mediante SSH. -->
+                <div class="evidence-card">
+
+                    <div class="evidence-top">
+                        <span class="evidence-code">E2</span>
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <h3>Fallos masivos de SSH</h3>
+
+                    <p>
+                        Múltiples intentos de autenticación fallidos.
+                    </p>
+
+                    <div class="input-wrapper">
+                        <input
+                            type="number"
+                            id="e2"
+                            min="-1"
+                            max="1"
+                            step="0.01"
+                            value="0.90"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- E3: evidencia negativa porque el antivirus no detectó amenazas. -->
+                <div class="evidence-card negative">
+
+                    <div class="evidence-top">
+                        <span class="evidence-code">E3</span>
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <h3>Alertas del antivirus</h3>
+
+                    <p>
+                        Evidencia negativa: el antivirus no detectó amenazas.
+                    </p>
+
+                    <div class="input-wrapper">
+                        <input
+                            type="number"
+                            id="e3"
+                            min="-1"
+                            max="1"
+                            step="0.01"
+                            value="-0.40"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- E4: evidencia relacionada con cambios no explicados en firmas SHA-256. -->
+                <div class="evidence-card">
+
+                    <div class="evidence-top">
+                        <span class="evidence-code">E4</span>
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <h3>Modificación de SHA-256</h3>
+
+                    <p>
+                        Cambios no explicados en firmas SHA-256.
+                    </p>
+
+                    <div class="input-wrapper">
+                        <input
+                            type="number"
+                            id="e4"
+                            min="-1"
+                            max="1"
+                            step="0.01"
+                            value="0.70"
+                        >
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Muestra el vector de entrada formado con los cuatro factores de certeza. -->
+            <div class="vector-display">
+
+                <span>Vector de entrada</span>
+
+                <code id="vector">
+                    [0.85, 0.90, -0.40, 0.70]
+                </code>
+
+            </div>
+
+
+            <!-- Botón que inicia el cálculo de las reglas y del diagnóstico final. -->
+            <button class="run-button" id="runButton">
+
+                <span class="button-icon">▶</span>
+
+                <span>Ejecutar motor de inferencia</span>
+
+                <span class="button-arrow">→</span>
+
+            </button>
+
+        </section>
+
+
+        <!-- Reglas de inferencia: muestra cómo cada evidencia produce una hipótesis. -->
+        <section class="panel rules-panel">
+
+            <div class="section-title">
+
+                <span class="number">02</span>
+
+                <div>
+                    <h2>Reglas de inferencia</h2>
+
+                    <p>
+                        Aplicación de AND, OR, NOT y propagación de certeza.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- Contenedor cuyos resultados pueden actualizarse al ejecutar el motor. -->
+            <div class="rules-container" id="rulesContainer">
+
+                <div class="rule">
+                    <span class="rule-code">R1</span>
+
+                    <div class="rule-content">
+                        <strong>E1 → CH1</strong>
+                        <small>Factor de regla: 0.80</small>
+                        <small id="r1Explanation">Calculando R1...</small>
+                    </div>
+
+                    <span class="rule-result" id="r1">0.680</span>
+                </div>
+
+
+                <div class="rule">
+                    <span class="rule-code">R2</span>
+
+                    <div class="rule-content">
+                        <strong>E2 AND E4 → CH2</strong>
+                        <small>Factor de regla: 0.75</small>
+                        <small id="r2Explanation">Calculando R2...</small>
+                    </div>
+
+                    <span class="rule-result" id="r2">0.525</span>
+                </div>
+
+
+                <div class="rule">
+                    <span class="rule-code">R3</span>
+
+                    <div class="rule-content">
+                        <strong>E3 → CH2</strong>
+                        <small>Factor de regla: 0.60</small>
+                        <small id="r3Explanation">Calculando R3...</small>
+                    </div>
+
+                    <span class="rule-result" id="r3">-0.240</span>
+                </div>
+
+
+                <div class="rule">
+                    <span class="rule-code">R4</span>
+
+                    <div class="rule-content">
+                        <strong>NOT E1 OR NOT E3 → CH3</strong>
+                        <small>Factor de regla: 0.50</small>
+                        <small id="r4Explanation">Calculando R4...</small>
+                    </div>
+
+                    <span class="rule-result" id="r4">0.200</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Resultados: presenta el factor de certeza acumulado para cada diagnóstico. -->
+        <section class="panel results-panel">
+
+            <div class="section-title">
+
+                <span class="number">03</span>
+
+                <div>
+                    <h2>Diagnóstico final</h2>
+
+                    <p>
+                        CH significa hipótesis de clasificación; cada una representa un posible diagnóstico.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="diagnosis-grid">
+
+                <!-- CH1: hipótesis de un ataque de denegación de servicio distribuido. -->
+                <div class="diagnosis-card">
+
+                    <div class="diagnosis-header">
+                        <span>CH1</span>
+                        <span class="diagnosis-tag">HIPÓTESIS</span>
+                    </div>
+
+                    <h3>DDoS</h3>
+
+                    <div class="confidence">
+                        <span id="ch1Value">0.680</span>
+                    </div>
+
+                    <div class="progress">
+                        <div
+                            class="progress-fill"
+                            id="ch1Bar"
+                            style="width:68%"
+                        ></div>
+                    </div>
+
+                    <small>CH1: DDoS. Ataque de denegación de servicio distribuido.</small>
+
+                </div>
+
+
+                <!-- CH2: hipótesis de una infección por ransomware. -->
+                <div class="diagnosis-card">
+
+                    <div class="diagnosis-header">
+                        <span>CH2</span>
+                        <span class="diagnosis-tag">HIPÓTESIS</span>
+                    </div>
+
+                    <h3>Ransomware</h3>
+
+                    <div class="confidence">
+                        <span id="ch2Value">0.375</span>
+                    </div>
+
+                    <div class="progress">
+                        <div
+                            class="progress-fill"
+                            id="ch2Bar"
+                            style="width:37.5%"
+                        ></div>
+                    </div>
+
+                    <small>CH2: Ransomware. Secuestro o cifrado malicioso de archivos.</small>
+
+                </div>
+
+
+                <!-- CH3: hipótesis de una falsa alarma. -->
+                <div class="diagnosis-card">
+
+                    <div class="diagnosis-header">
+                        <span>CH3</span>
+                        <span class="diagnosis-tag">HIPÓTESIS</span>
+                    </div>
+
+                    <h3>Falsa Alarma</h3>
+
+                    <div class="confidence">
+                        <span id="ch3Value">0.200</span>
+                    </div>
+
+                    <div class="progress">
+                        <div
+                            class="progress-fill"
+                            id="ch3Bar"
+                            style="width:20%"
+                        ></div>
+                    </div>
+
+                    <small>CH3: Falsa Alarma. Tráfico legítimo interpretado como incidente.</small>
+
+                </div>
+
+            </div>
+
+
+            <!-- Destaca la hipótesis con el mayor factor de certeza acumulado. -->
+            <div class="final-diagnosis" id="finalDiagnosis">
+
+                <div class="diagnosis-icon">
+                    !
+                </div>
+
+                <div>
+                    <span>Diagnóstico prioritario</span>
+
+                    <h3 id="diagnosisText">
+                        DDoS
+                    </h3>
+
+                    <p id="diagnosisDescription">
+                        La hipótesis con mayor factor de certeza es DDoS.
+                    </p>
+                </div>
+
+                <div class="final-value">
+                    <span id="finalValue">0.680</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Consola: registra el estado y los pasos de ejecución del motor de inferencia. -->
+        <section class="console-panel">
+
+            <div class="console-header">
+
+                <div class="console-lights">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <span>CONSOLA · MOTOR DE INFERENCIA</span>
+
+                <span class="live">
+                    ● LIVE
+                </span>
+
+            </div>
+
+
+            <div class="console-body" id="consoleOutput">
+
+                <div class="console-line">
+                    <span class="console-symbol">›</span>
+                    <span>Esperando ejecución del motor...</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Pie de página con la identificación del sistema. -->
+        <footer>
+
+            <span>FACTORES DE CERTEZA</span>
+
+            <span>·</span>
+
+            <span>SISTEMA EXPERTO IDS</span>
+
+        </footer>
+
+    </main>
+
+
+    <!-- Lógica de interacción, cálculo de reglas y actualización de resultados. -->
+    <script src="script.js"></script>
+
+</body>
+</html>
