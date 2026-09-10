@@ -2,29 +2,17 @@
 
 ## Manual de usuario
 
-Aplicación web educativa para analizar incidentes de ciberseguridad mediante un sistema experto basado en la Teoría de Factores de Certeza.
 
-El sistema recibe cuatro evidencias, aplica reglas de inferencia y calcula cuál de las hipótesis de incidente tiene mayor certeza.
-
-## 1. Archivos del proyecto
-
-- `index.html`: contiene la estructura y los textos de la página.
-- `styles.css`: contiene los colores, tipografías, tarjetas, botones, fondos y distribución visual.
-- `script.js`: contiene los operadores lógicos, las fórmulas de factores de certeza y la actualización dinámica de la interfaz.
-
-La página funciona en el navegador y no necesita una base de datos ni un servidor externo.
-
-## 2. Objetivo del sistema
-
+El Motor de Factores de Certeza es una página web desarrollada para representar el funcionamiento de un sistema experto aplicado al análisis de incidentes de ciberseguridad. El sistema recibe cuatro evidencias provenientes de sensores de seguridad, aplica las reglas de inferencia definidas para el caso de estudio y calcula el nivel de certeza asociado a tres posibles hipótesis DDoS, Ransomware y Falsa Alarma. Una de las principales características de la página  es que es parametrizable, ya que permite modificar los valores de las evidencias y ejecutar nuevamente el motor para observar cómo cambian los resultados y el diagnóstico final.
+ 
 El sistema analiza evidencias de un Centro de Operaciones de Seguridad y compara tres posibles hipótesis:
 
 - **CH1 - DDoS:** ataque de denegación de servicio distribuido.
 - **CH2 - Ransomware:** intrusión relacionada con secuestro o cifrado malicioso de archivos.
 - **CH3 - Falsa Alarma:** tráfico legítimo interpretado como un incidente.
 
-`CH` significa **hipótesis de clasificación**. Cada código representa una posible explicación del incidente.
 
-## 3. Evidencias de entrada
+## 1. Evidencias de entrada
 
 La página muestra cuatro campos numéricos. Cada uno acepta valores entre `-1` y `1`.
 
@@ -42,9 +30,7 @@ La página muestra cuatro campos numéricos. Cada uno acepta valores entre `-1` 
 - Un valor igual a `0` significa que no existe evidencia útil en ese sentido.
 - Los valores cercanos a `1` o `-1` representan mayor certeza.
 
-Por ejemplo, `E3 = -0.40` indica certeza moderada de que el antivirus no ha detectado amenazas.
-
-## 4. Cómo utilizar la página
+## 2. Cómo utilizar la página
 
 1. Abra `index.html` en un navegador.
 2. Revise los valores iniciales de `E1`, `E2`, `E3` y `E4`.
@@ -57,7 +43,7 @@ Por ejemplo, `E3 = -0.40` indica certeza moderada de que el antivirus no ha dete
 
 Cuando se modifica una evidencia, el vector se actualiza inmediatamente. Los cálculos completos se ejecutan al presionar el botón.
 
-## 5. Reglas de inferencia
+## 3. Reglas de inferencia
 
 El sistema utiliza exactamente estas cuatro reglas:
 
@@ -134,29 +120,31 @@ R4 = max(NOT E1, NOT E3) × 0.50
 
 R4 aporta evidencia a la hipótesis Falsa Alarma.
 
-## 6. Operadores lógicos
+## 4. Operadores lógicos
 
 Los operadores se calculan realmente en JavaScript.
 
 ### AND
 
-Para factores de certeza, `AND` toma el menor valor:
+El operador `AND` requiere que todas las evidencias sean positivas. Una vez cumplida esta condición  toma el menor valor:
 
 ```text
 AND(A, B) = min(A, B)
 ```
 
-Esto representa que una condición conjunta queda limitada por la evidencia más débil.
+Si alguna evidencia es 0 o negativa, la regla no se activa.
+
 
 ### OR
 
-`OR` toma el mayor valor:
+El operador `OR` permite activar una regla cuando al menos una de las condiciones es positiva, toma el mayor valor:
 
 ```text
 OR(A, B) = max(A, B)
 ```
 
-Esto representa que basta con que una de las opciones tenga mayor evidencia.
+Esto representa que basta con que una de las opciones tenga mayor evidencia. Si todas las condiciones son 0 o negativas, la regla no se activa.
+
 
 ### NOT
 
@@ -168,41 +156,37 @@ NOT(A) = -A
 
 Una evidencia positiva se convierte en negativa y una negativa se convierte en positiva.
 
-## 7. Estado de activación de las reglas
+## 5. Estado de activación de las reglas
 
 La página explica el estado de cada regla tanto en la sección de reglas como en la consola.
 
 - **ACTIVA:** el antecedente es positivo y aporta evidencia a favor.
 - **NO ACTIVA:** el antecedente es `0` o negativo, por lo que no aporta evidencia positiva.
+- **EVIDENCIA NEGATIVA:** la interfaz puede mostrar el valor negativo de una evidencia para indicar que existe información en contra, pero este valor no implica que una regla positiva esté activa.
+
 
 Una evidencia negativa se conserva para la explicación y para evaluar `NOT`, pero no activa directamente una regla positiva.
 
-## 8. Combinación de CH2
+## 6. Combinación de CH2
 
 CH2 recibe información de dos reglas: `R2` y `R3`. Por eso no se utiliza una suma, promedio ni máximo. Se usa la combinación acumulativa de factores de certeza.
 
-### Ambos factores positivos
+### Producto entre dos factores positivo
 
 ```text
-CFcomb = CF1 + CF2 × (1 - CF1)
+Ccomb = C1 + C2 - (C1 * C2)
+
 ```
 
-### Ambos factores negativos
+### Producto negativo
 
 ```text
-CFcomb = CF1 + CF2 × (1 + CF1)
-```
-
-### Factores con signos diferentes
-
-```text
-CFcomb = (CF1 + CF2) /
-         (1 - min(abs(CF1), abs(CF2)))
+Ccomb = (C1 + C2) / (1 - min(|C1|, |C2|))
 ```
 
 Las reglas no activas aportan `0` a CH2. Por tanto, solo se combinan los aportes positivos de las reglas activas. El resultado se limita al intervalo `[-1, 1]` antes de mostrarse.
 
-## 9. Diagnóstico final
+## 7. Diagnóstico final
 
 El motor calcula los tres diagnósticos y selecciona el que tenga el mayor factor de certeza.
 
@@ -217,7 +201,7 @@ El bloque **Diagnóstico prioritario** muestra la hipótesis con mayor certeza, 
 
 Un valor positivo indica apoyo a la hipótesis. Un valor negativo indica evidencia en contra. Si todos los valores son `0`, no existe evidencia suficiente; el sistema conserva el primer diagnóstico en caso de empate.
 
-## 10. Consola de resultados
+## 8. Consola de resultados
 
 La consola muestra paso a paso la ejecución del motor:
 
