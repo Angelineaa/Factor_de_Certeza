@@ -231,10 +231,3 @@ La consola muestra paso a paso la ejecución del motor:
 8. Valores finales de CH1, CH2 y CH3.
 9. Ranking de hipótesis de mayor a menor certeza.
 10. Diagnóstico prioritario y conclusión.
-
-La consola muestra sus líneas progresivamente para facilitar la lectura del procedimiento. Si se vuelve a ejecutar el motor antes de terminar la animación, se cancela la ejecución anterior y se muestra únicamente el cálculo nuevo.
-
-Seleccionar el diagnóstico principal
-        ↓
-Actualizar tarjetas, barras, explicación y consola
-```
